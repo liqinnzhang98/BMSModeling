@@ -12,6 +12,7 @@ import com.example.demo.service.JwtUtil;
 import com.example.demo.service.ControllerService;
 import com.example.demo.response.ApiResponse;
 import com.example.demo.service.ProjectService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,9 @@ public class ControllerController {
         this.projectRepository = projectRepository;
     }
 
+    @Operation(
+            summary = "creates a controller, project Id and controller with Inputs and Outputs are required"
+    )
     @PostMapping("/{projectId}/createController")
     public ResponseEntity<?> createController(@RequestHeader("Authorization") String token,
                                               @PathVariable Long projectId,
@@ -75,6 +79,10 @@ public class ControllerController {
         String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         return jwtUtil.extractUsername(token);
     }
+
+    @Operation(
+            summary = "updates a controller, project Id and controller Id and Controller parameters are required"
+    )
 
     @PutMapping("/{projectId}/updateController/{controllerId}")
     public ResponseEntity<?> updateController(@RequestHeader("Authorization") String token,
@@ -116,6 +124,9 @@ public class ControllerController {
         }
     }
 
+    @Operation(
+            summary = "deletes a controller, project Id and controller Id are required"
+    )
     @DeleteMapping("/{projectId}/{controllerId}")
     public ResponseEntity<?> deleteController(@RequestHeader("Authorization") String token,
                                               @PathVariable Long projectId,
@@ -148,6 +159,9 @@ public class ControllerController {
         }
     }
 
+    @Operation(
+            summary = "returns are controllers involved with one single project"
+    )
     @GetMapping("/projectControls/{projectId}/")
     public ResponseEntity<?> getControllersByProject(@PathVariable Long projectId) {
         try {

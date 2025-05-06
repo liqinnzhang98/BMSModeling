@@ -8,6 +8,8 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.response.ApiResponse;
 import com.example.demo.service.CustomUserDetailsService;
 import com.example.demo.service.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,9 @@ public class AuthenticationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Operation(
+            summary = "register a user by creating a new user account by enter name, email and password"
+    )
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
 
@@ -69,6 +74,9 @@ public class AuthenticationController {
             }
     }
 
+    @Operation(
+            summary = "user login, jwt token will be received after successfully logged in, email and password are required"
+    )
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO request) {
         try {

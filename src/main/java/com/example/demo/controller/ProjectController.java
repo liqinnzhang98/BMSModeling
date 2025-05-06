@@ -9,6 +9,7 @@ import com.example.demo.response.ApiResponse;
 import com.example.demo.service.JwtUtil;
 import com.example.demo.service.ProjectMapperUtil;
 import com.example.demo.service.ProjectService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,9 @@ public class ProjectController {
         this.userRepository = userRepository;
     }
 
+    @Operation(
+            summary = "returns all projects"
+    )
     @GetMapping
     public ResponseEntity<?> getAllProjects(@RequestHeader("Authorization") String token) {
         try {
@@ -44,6 +48,9 @@ public class ProjectController {
         }
     }
 
+    @Operation(
+            summary = "creates a project"
+    )
     @PostMapping
     public ResponseEntity<?> createProject(
             @RequestHeader("Authorization") String token,
@@ -63,6 +70,9 @@ public class ProjectController {
         }
     }
 
+    @Operation(
+            summary = "Updates a project by entering its project Id"
+    )
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProject(
             @RequestHeader("Authorization") String token,
@@ -79,6 +89,9 @@ public class ProjectController {
         }
     }
 
+    @Operation(
+            summary = "deletes a project by project Id"
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProject(@RequestHeader("Authorization") String token, @PathVariable Long id) {
         try {
