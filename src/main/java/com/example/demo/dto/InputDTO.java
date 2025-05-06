@@ -1,23 +1,21 @@
-package com.example.demo.model;
+package com.example.demo.dto;
 
 import com.example.demo.model.enums.CableType;
-import jakarta.persistence.*;
+import com.example.demo.model.enums.InputType;
 
-@MappedSuperclass
-public class IOComponent {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class InputDTO {
+
     private Long id;
-
-    @Enumerated(EnumType.STRING)
+    private InputType inputType;  // New field for InputType
     private CableType cableType;
-
     private String controlTerminalsln;
     private String controlTerminalsCm;
     private String controllerPointDescription;
     private String ddcFieldDevice;
     private String fieldDeviceInputOutputType;
+    private String specialNotesComments;
 
+    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -26,12 +24,12 @@ public class IOComponent {
         this.id = id;
     }
 
-    public CableType getCableType() {
-        return cableType;
+    public InputType getInputType() {
+        return inputType;
     }
 
-    public void setCableType(CableType cableType) {
-        this.cableType = cableType;
+    public void setInputType(InputType inputType) {
+        this.inputType = inputType;
     }
 
     public String getControlTerminalsln() {
@@ -71,12 +69,14 @@ public class IOComponent {
     }
 
     public void setSpecialNotesComments(String specialNotesComments) {
-
+        this.specialNotesComments = specialNotesComments;
     }
 
-    private String specialNotesComments;
+    public CableType getCableType() { return this.cableType;
+    }
 
-    public void setController(Controller controller) {
+    public void setCableType(CableType cableType) {
+        this.cableType = cableType;
     }
 
     public String getControllerPointDescription() {
