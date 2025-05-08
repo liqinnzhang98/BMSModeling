@@ -1,0 +1,28 @@
+.container {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.paper {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.form {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.submitButton {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.linkContainer {
+  text-align: center;
+} 

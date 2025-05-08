@@ -28,6 +28,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
+import styles from '../styles/ControllerDetail.module.css';
 
 interface Input {
   id: string;
@@ -163,10 +164,10 @@ const ControllerDetail = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+      <Box className={styles.header}>
         <Box>
           {editMode ? (
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box className={styles.editForm}>
               <TextField
                 label="Controller Name"
                 value={editedName}
@@ -178,7 +179,7 @@ const ControllerDetail = () => {
               <Button onClick={() => setEditMode(false)}>Cancel</Button>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box className={styles.titleContainer}>
               <Typography variant="h4" component="h1">
                 {controller.name}
               </Typography>
@@ -192,9 +193,9 @@ const ControllerDetail = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card>
+          <Card className={styles.card}>
             <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Box className={styles.cardHeader}>
                 <Typography variant="h6">Inputs</Typography>
                 <Button
                   startIcon={<AddIcon />}
@@ -203,9 +204,9 @@ const ControllerDetail = () => {
                   Add Input
                 </Button>
               </Box>
-              <List>
+              <List className={styles.list}>
                 {controller.inputs.map((input) => (
-                  <ListItem key={input.id}>
+                  <ListItem key={input.id} className={styles.listItem}>
                     <ListItemText
                       primary={input.name}
                       secondary={`Type: ${input.type}`}
@@ -227,9 +228,9 @@ const ControllerDetail = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card>
+          <Card className={styles.card}>
             <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Box className={styles.cardHeader}>
                 <Typography variant="h6">Outputs</Typography>
                 <Button
                   startIcon={<AddIcon />}
@@ -238,9 +239,9 @@ const ControllerDetail = () => {
                   Add Output
                 </Button>
               </Box>
-              <List>
+              <List className={styles.list}>
                 {controller.outputs.map((output) => (
-                  <ListItem key={output.id}>
+                  <ListItem key={output.id} className={styles.listItem}>
                     <ListItemText
                       primary={output.name}
                       secondary={`Type: ${output.type}`}

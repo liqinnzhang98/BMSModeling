@@ -12,6 +12,7 @@ import {
   Paper,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
+import styles from '../styles/Register.module.css';
 
 const validationSchema = yup.object({
   email: yup
@@ -51,28 +52,12 @@ const Register = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
+      <Box className={styles.container}>
+        <Paper className={styles.paper} elevation={3}>
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={formik.handleSubmit} className={styles.form}>
             <TextField
               margin="normal"
               fullWidth
@@ -112,11 +97,11 @@ const Register = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              className={styles.submitButton}
             >
               Sign Up
             </Button>
-            <Box sx={{ textAlign: 'center' }}>
+            <Box className={styles.linkContainer}>
               <Link component={RouterLink} to="/login" variant="body2">
                 {"Already have an account? Sign In"}
               </Link>

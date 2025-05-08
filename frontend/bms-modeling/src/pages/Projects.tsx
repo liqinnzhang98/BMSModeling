@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
+import styles from '../styles/Projects.module.css';
 
 interface Project {
   id: string;
@@ -57,7 +58,7 @@ const Projects = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+      <Box className={styles.header}>
         <Typography variant="h4" component="h1">
           Projects
         </Typography>
@@ -73,8 +74,8 @@ const Projects = () => {
       <Grid container spacing={3}>
         {projects.map((project) => (
           <Grid item xs={12} sm={6} md={4} key={project.id}>
-            <Card>
-              <CardContent>
+            <Card className={styles.card}>
+              <CardContent className={styles.cardContent}>
                 <Typography variant="h6" component="h2">
                   {project.name}
                 </Typography>
@@ -85,7 +86,7 @@ const Projects = () => {
                   Created: {new Date(project.createdAt).toLocaleDateString()}
                 </Typography>
               </CardContent>
-              <CardActions>
+              <CardActions className={styles.cardActions}>
                 <Button
                   size="small"
                   color="primary"

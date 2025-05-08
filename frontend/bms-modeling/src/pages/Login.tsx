@@ -12,6 +12,7 @@ import {
   Paper,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
+import styles from '../styles/Login.module.css';
 
 const validationSchema = yup.object({
   email: yup
@@ -36,7 +37,7 @@ const Login = () => {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       try {
-        // await login(values.email, values.password);
+        await login(values.email, values.password);
         navigate('/projects');
       } catch (error) {
         console.error('Login failed:', error);
@@ -46,28 +47,12 @@ const Login = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
+      <Box className={styles.container}>
+        <Paper className={styles.paper} elevation={3}>
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={formik.handleSubmit} className={styles.form}>
             <TextField
               margin="normal"
               fullWidth
@@ -95,11 +80,11 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              className={styles.submitButton}
             >
               Sign In
             </Button>
-            <Box sx={{ textAlign: 'center' }}>
+            <Box className={styles.linkContainer}>
               <Link component={RouterLink} to="/register" variant="body2">
                 {"Don't have an account? Sign Up"}
               </Link>

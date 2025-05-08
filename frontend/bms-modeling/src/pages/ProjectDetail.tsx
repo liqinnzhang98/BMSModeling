@@ -20,6 +20,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
+import styles from '../styles/ProjectDetail.module.css';
 
 interface Controller {
   id: string;
@@ -121,10 +122,10 @@ const ProjectDetail = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+      <Box className={styles.header}>
         <Box>
           {editMode ? (
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box className={styles.editForm}>
               <TextField
                 label="Project Name"
                 value={editedProject.name}
@@ -141,7 +142,7 @@ const ProjectDetail = () => {
               <Button onClick={() => setEditMode(false)}>Cancel</Button>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box className={styles.titleContainer}>
               <Typography variant="h4" component="h1">
                 {project.name}
               </Typography>
@@ -163,8 +164,8 @@ const ProjectDetail = () => {
       <Grid container spacing={3}>
         {project.controllers.map((controller) => (
           <Grid item xs={12} sm={6} md={4} key={controller.id}>
-            <Card>
-              <CardContent>
+            <Card className={styles.card}>
+              <CardContent className={styles.cardContent}>
                 <Typography variant="h6" component="h2">
                   {controller.name}
                 </Typography>
@@ -175,7 +176,7 @@ const ProjectDetail = () => {
                   Outputs: {controller.outputs.length}
                 </Typography>
               </CardContent>
-              <CardActions>
+              <CardActions className={styles.cardActions}>
                 <Button
                   size="small"
                   color="primary"
