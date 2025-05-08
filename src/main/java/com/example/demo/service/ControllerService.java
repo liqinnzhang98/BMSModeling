@@ -31,8 +31,6 @@ public class ControllerService {
         controllerRepository.deleteById(id);
     }
 
-
-
     public List<Controller> getControllersByProject(Project project) {
         return controllerRepository.findByProject(project);
     }
