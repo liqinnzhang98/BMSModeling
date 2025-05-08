@@ -12,5 +12,5 @@ import java.util.Optional;
 
 @Repository
 public interface ControllerRepository extends JpaRepository<Controller, Long> {
-    List<Controller> findByProject(Project project);
+    List<Controller> findByProjectId(Long projectId);
 }

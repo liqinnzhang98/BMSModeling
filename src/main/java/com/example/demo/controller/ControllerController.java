@@ -6,6 +6,10 @@ import com.example.demo.repository.ProjectRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.*;
 import com.example.demo.response.ApiResponse;
+import com.example.demo.utils.ControllerMapperUtil;
+import com.example.demo.utils.InputMapperUtil;
+import com.example.demo.utils.JwtUtil;
+import com.example.demo.utils.OutputMapperUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -68,10 +72,14 @@ public class ControllerController {
 
             // Return success response
             ControllerResponseDTO responseDTO = ControllerMapperUtil.toDTO(savedController);
-            return ResponseEntity.status(201).body(new ApiResponse<>(201, "Controller created successfully", responseDTO));
+            return ResponseEntity.status(201).body(new ApiResponse<>(201,
+                    "Controller created successfully",
+                    responseDTO));
 
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ApiResponse<>(500, "An error occurred: " + e.getMessage(), null));
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(),
+                    null));
         }
     }
 
@@ -188,7 +196,7 @@ public class ControllerController {
                     .orElseThrow(() -> new RuntimeException("Project not found"));
 
             // Retrieve the list of controllers for the project
-            List<Controller> controllers = controllerService.getControllersByProject(project);
+            List<Controller> controllers = controllerService.getAllControllersByProjectId(projectId);
             List<ControllerResponseDTO> dtoList = controllers.stream()
                     .map(ControllerMapperUtil::toDTO)
                     .collect(Collectors.toList());
@@ -270,13 +278,19 @@ public class ControllerController {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
             if (!controllerOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Controller not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found",
+                        null));
             }
 
             ControllerResponseDTO responseDTO = ControllerMapperUtil.toDTO(controllerOptional.get());
-            return ResponseEntity.ok(new ApiResponse<>(200, "Controller retrieved successfully", responseDTO));
+            return ResponseEntity.ok(new ApiResponse<>(200,
+                    "Controller retrieved successfully",
+                    responseDTO));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ApiResponse<>(500, "An error occurred: " + e.getMessage(), null));
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(),
+                    null));
         }
     }
 
@@ -289,20 +303,28 @@ public class ControllerController {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
             if (!controllerOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Controller not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found",
+                        null));
             }
 
             Optional<Input> inputOptional = inputService.getInputById(inputId);
             if (!inputOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Input not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Input not found",
+                        null));
             }
 
             // Remove the input from the controller
             inputService.deleteInput(inputId);
 
-            return ResponseEntity.ok(new ApiResponse<>(200, "Input deleted successfully", null));
+            return ResponseEntity.ok(new ApiResponse<>(200,
+                    "Input deleted successfully",
+                    null));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ApiResponse<>(500, "An error occurred: " + e.getMessage(), null));
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(),
+                    null));
         }
     }
 
@@ -315,12 +337,15 @@ public class ControllerController {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
             if (!controllerOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Controller not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found",
+                        null));
             }
 
             Optional<Output> outputOptional = outputService.getOutputById(outputId);
             if (!outputOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Output not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Output not found", null));
             }
 
             // Remove the output from the controller
@@ -328,7 +353,8 @@ public class ControllerController {
 
             return ResponseEntity.ok(new ApiResponse<>(200, "Output deleted successfully", null));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ApiResponse<>(500, "An error occurred: " + e.getMessage(), null));
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(), null));
         }
     }
 
@@ -344,13 +370,15 @@ public class ControllerController {
             // Check if the controller exists
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
             if (!controllerOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Controller not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found", null));
             }
 
             // Check if the input exists
             Optional<Input> inputOptional = inputService.getInputById(inputId);
             if (!inputOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Input not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Input not found", null));
             }
 
             // Convert DTO to entity and set IDs and controller
@@ -364,9 +392,11 @@ public class ControllerController {
             // Convert back to DTO
             InputDTO updatedInputDTO = InputMapperUtil.toDTO(updatedInput);
 
-            return ResponseEntity.ok(new ApiResponse<>(200, "Input updated successfully", updatedInputDTO));
+            return ResponseEntity.ok(new ApiResponse<>(200,
+                    "Input updated successfully", updatedInputDTO));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ApiResponse<>(500, "An error occurred: " + e.getMessage(), null));
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(), null));
         }
     }
 
@@ -383,13 +413,15 @@ public class ControllerController {
             // Check if the controller exists
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
             if (!controllerOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Controller not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found", null));
             }
 
             // Check if the input exists
             Optional<Output> outputOptional = outputService.getOutputById(outputId);
             if (!outputOptional.isPresent()) {
-                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Output not found", null));
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Output not found", null));
             }
 
             // Convert DTO to entity and set IDs and controller
@@ -403,9 +435,11 @@ public class ControllerController {
             // Convert back to DTO
             OutputDTO updatedInputDTO = OutputMapperUtil.toDTO(updatedOutput);
 
-            return ResponseEntity.ok(new ApiResponse<>(200, "Input updated successfully", updatedInputDTO));
+            return ResponseEntity.ok(new ApiResponse<>(200,
+                    "Input updated successfully", updatedInputDTO));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(new ApiResponse<>(500, "An error occurred: " + e.getMessage(), null));
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(), null));
         }
     }
 }

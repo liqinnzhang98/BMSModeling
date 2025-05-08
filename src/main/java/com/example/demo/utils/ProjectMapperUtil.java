@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.utils;
 
 import com.example.demo.dto.ProjectRequestDTO;
 import com.example.demo.dto.ProjectResponseDTO;

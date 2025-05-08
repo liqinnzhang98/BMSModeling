@@ -2,33 +2,47 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ProjectRequestDTO;
 import com.example.demo.dto.ProjectResponseDTO;
+import com.example.demo.model.Controller;
 import com.example.demo.model.Project;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.response.ApiResponse;
-import com.example.demo.service.JwtUtil;
-import com.example.demo.service.ProjectMapperUtil;
+import com.example.demo.service.ControllerService;
+import com.example.demo.service.ExcelExportService;
+import com.example.demo.utils.JwtUtil;
+import com.example.demo.utils.ProjectMapperUtil;
 import com.example.demo.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/project")
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ControllerService controllerService;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private ExcelExportService excelExportService;
 
     @Autowired
-    public ProjectController(ProjectService projectService, JwtUtil jwtUtil, UserRepository userRepository) {
+    public ProjectController(ProjectService projectService, JwtUtil jwtUtil, UserRepository userRepository
+    , ControllerService controllerService, ExcelExportService excelExportService) {
         this.projectService = projectService;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+        this.controllerService = controllerService;
+        this.excelExportService = new ExcelExportService();
     }
 
     @Operation(
@@ -111,6 +125,36 @@ public class ProjectController {
             return jwtUtil.extractUsername(token);
         } catch (Exception e) {
             throw new RuntimeException("Invalid or expired token");
+        }
+    }
+
+    @GetMapping("/exportProject/{projectId}")
+    public ResponseEntity<?> exportProjectToExcel(@PathVariable Long projectId) {
+        try {
+            // Fetch the project
+            Optional<Project> projectOpt = projectService.getProjectById(projectId);
+            if (projectOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Project not found", null));
+            }
+            Project project = projectOpt.get();
+
+            // Fetch controllers with inputs and outputs
+            List<Controller> controllers = controllerService.getAllControllersByProjectId(projectId);
+
+            // Export to Excel
+            ByteArrayInputStream excelFile = excelExportService.exportControllersToExcel(project, controllers);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=project_" + projectId + "_export.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new InputStreamResource(excelFile));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(500, "Failed to export Excel: " + e.getMessage(), null));
         }
     }
 }

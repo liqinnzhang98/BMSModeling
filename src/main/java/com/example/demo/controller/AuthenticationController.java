@@ -1,15 +1,13 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AuthRequestDTO;
-import com.example.demo.dto.AuthResponseDTO;
 import com.example.demo.dto.RegisterRequestDTO;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.response.ApiResponse;
 import com.example.demo.service.CustomUserDetailsService;
-import com.example.demo.service.JwtUtil;
+import com.example.demo.utils.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
