@@ -1,0 +1,62 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: points-list-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=my_database
+      - MYSQL_ROOT_PASSWORD=rootadmin
+      - MYSQL_ROOT_HOST=%
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootadmin"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - app-network
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: points-list-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8080
+      - MYSQL_HOST=points-list-db
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=rootadmin
+      - FRONTEND_URL=http://points-list-frontend:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend/react-files
+      dockerfile: Dockerfile.dev
+    container_name: points-list-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/react-files:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://points-list-backend:8080
+    networks:
+      - app-network
+      
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data: 

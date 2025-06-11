@@ -128,6 +128,41 @@ public class ProjectController {
         }
     }
 
+    @Operation(
+            summary = "Retrieve project details by project ID"
+    )
+    @GetMapping("/{projectId}")
+    public ResponseEntity<?> getProjectDetails(@RequestHeader("Authorization") String token, @PathVariable Long projectId) {
+        try {
+            // Extract email from the token
+            String email = extractEmailFromToken(token);
+
+            // Check if the user exists
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Retrieve the project by projectId
+            Optional<Project> projectOpt = projectService.getProjectById(projectId);
+            if (projectOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(new ApiResponse<>(404, "Project not found", null));
+            }
+
+            Project project = projectOpt.get();
+            // Ensure that the project belongs to the current user
+            if (!project.getUser().getId().equals(user.getId())) {
+                return ResponseEntity.status(403).body(new ApiResponse<>(403, "You are not authorized to view this project", null));
+            }
+
+            // Convert the project entity to DTO for response
+            ProjectResponseDTO projectResponseDTO = ProjectMapperUtil.toDTO(project);
+
+            return ResponseEntity.ok(new ApiResponse<>(200, "Project details retrieved successfully", projectResponseDTO));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error retrieving project details: " + e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/exportProject/{projectId}")
     public ResponseEntity<?> exportProjectToExcel(@PathVariable Long projectId) {
         try {

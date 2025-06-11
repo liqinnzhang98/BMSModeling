@@ -15,6 +15,7 @@ public class ProjectResponseDTO {
     private String revision;
     private Date date;
     private String jobNumber;
+    private Date dateCreated;
     // Getters and setters]
 
 
@@ -56,5 +57,13 @@ public class ProjectResponseDTO {
 
     public void setJobNumber(String jobNumber) {
         this.jobNumber = jobNumber;
+    }
+
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }

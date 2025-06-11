@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
@@ -41,6 +43,16 @@ public class AuthenticationController {
     )
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
+
+        Optional<User> existingUser = userRepository.findByEmail(registerRequestDTO.getEmail());
+        if (existingUser.isPresent()) {
+            ApiResponse<String> conflictResponse = new ApiResponse<>(
+                    500,
+                    "Email is already registered",
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(conflictResponse);
+        }
 
         try {
             // creating new user entity based on the register data received

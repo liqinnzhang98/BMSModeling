@@ -1,0 +1,48 @@
+.navbar-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+.navbar-left {
+    display: flex;
+    align-items: center;
+  }
+  
+.navbar-logo {
+    height: 40px;
+    margin-right: 12px;
+  }
+  
+.navbar-brand {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+  }
+  
+.navbar-buttons {
+    display: none;
+  }
+  
+  /* Show buttons on medium+ screens */
+@media (min-width: 600px) {
+    
+.navbar-buttons {
+      display: flex;
+      gap: 16px;
+    }
+  
+.navbar-mobile-icon {
+      display: none;
+    }
+  }
+  
+  /* Mobile icon is hidden on desktop */
+.navbar-mobile-icon {
+    display: block;
+  }
+  
+.drawer-box {
+    width: 250px;
+  }

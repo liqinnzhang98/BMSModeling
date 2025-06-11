@@ -5,11 +5,21 @@ import com.example.demo.dto.InputDTO;
 import com.example.demo.dto.OutputDTO;
 import com.example.demo.dto.ControllerRequestDTO;
 import com.example.demo.model.*;
+import com.example.demo.service.ControllerService;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ControllerMapperUtil {
+
+    private static ControllerService controllerService;
+
+    public ControllerMapperUtil(ControllerService controllerService) {
+        ControllerMapperUtil.controllerService = controllerService;
+    }
+
+    // Method to map Controller entity to ControllerRequestDTO
 
     // Method to map Controller entity to ControllerResponseDTO
     public static ControllerResponseDTO toDTO(Controller controller) {
@@ -18,6 +28,23 @@ public class ControllerMapperUtil {
         dto.setName(controller.getName());
         dto.setModelNumber(controller.getModelNumber());
         dto.setConfiguration(controller.getConfiguration());
+        dto.setUseAsTemplate(controller.isUseAsTemplate());
+        dto.setIsCreatedFromTemplate(controller.getIsCreatedFromTemplate());
+        dto.setTemplateName(controller.getTemplateName());
+        dto.setInputOrder(controller.getInputOrder());
+        dto.setOutputOrder(controller.getOutputOrder());
+        dto.setAuthorName(controller.getAuthor().getEmail());
+        dto.setProjectName(controller.getProject().getName());
+        dto.setDateCreated(controller.getDateCreated());
+        dto.setTemplateCreatedFrom(controller.getTemplateCreatedFrom());
+        dto.setChildControllers(controller.getChildControllers());
+
+        // Safe check for parent controller
+        if (controller.getParentController() != null) {
+            dto.setParentControllerId(controller.getParentController().getId());
+        } else {
+            dto.setParentControllerId(null); // or handle as needed
+        }
 
         // Map inputList to InputDTO
         dto.setInputList(controller.getInputList().stream()
@@ -91,8 +118,8 @@ public class ControllerMapperUtil {
             List<Output> outputs = requestDTO.getOutputList().stream()
                     .map(outputDTO -> {
                         Output output = new Output(outputDTO.getOutputType(), outputDTO.getCableType(), outputDTO.getControlTerminalsln(),
-                                outputDTO.getControlTerminalsCm(), outputDTO.getControllerPointDescription(), outputDTO.getDdcFieldDevice(), outputDTO.getSpecialNotesComments(),
-                                outputDTO.getFieldDeviceInputOutputType());
+                                outputDTO.getControlTerminalsCm(), outputDTO.getControllerPointDescription(), outputDTO.getDdcFieldDevice(),
+                                outputDTO.getFieldDeviceInputOutputType(), outputDTO.getSpecialNotesComments());
                         output.setController(controller);
                         return output;
                     }).collect(Collectors.toList());
@@ -106,7 +133,11 @@ public class ControllerMapperUtil {
         controller.setModelNumber(requestDTO.getModelNumber());
         controller.setConfiguration(requestDTO.getConfiguration());
         controller.setProject(project);
-
+        controller.setIsCreatedFromTemplate(requestDTO.getIsCreatedFromTemplate());
+        controller.setTemplateCreatedFrom(requestDTO.getTemplateCreatedFrom());
+        controller.setDateCreated(requestDTO.getDateCreated());
+        controller.setAuthor(user);
+        controller.setChildControllers(requestDTO.getChildControllers());
         // Map inputs
         List<Input> inputs = requestDTO.getInputList().stream()
                 .map(inputDTO -> {
@@ -143,5 +174,56 @@ public class ControllerMapperUtil {
         controller.setOutputList(outputs);
 
         return controller;
+    }
+
+    public static Controller childtoNewChild(Controller oldChild, Controller newParent, Project project) {
+        Controller newChild = new Controller();
+        newChild.setName(oldChild.getName());
+        newChild.setModelNumber(oldChild.getModelNumber());
+        newChild.setConfiguration(oldChild.getConfiguration());
+        newChild.setProject(project);
+        newChild.setIsCreatedFromTemplate(false);
+        newChild.setTemplateCreatedFrom("origin");
+        newChild.setDateCreated(new Date());
+        newChild.setAuthor(oldChild.getAuthor());
+        newChild.setParentController(newParent);
+
+        // Map inputs
+        List<Input> inputs = oldChild.getInputList().stream()
+                .map(inputDTO -> {
+                    Input input = new Input();
+                    input.setType(inputDTO.getType());
+                    input.setCableType(inputDTO.getCableType());
+                    input.setControlTerminalsln(inputDTO.getControlTerminalsln());
+                    input.setControlTerminalsCm(inputDTO.getControlTerminalsCm());
+                    input.setControllerPointDescription(inputDTO.getControllerPointDescription());
+                    input.setDdcFieldDevice(inputDTO.getDdcFieldDevice());
+                    input.setFieldDeviceInputOutputType(inputDTO.getFieldDeviceInputOutputType());
+                    input.setSpecialNotesComments(inputDTO.getSpecialNotesComments());
+                    input.setController(newChild);
+                    return input;
+                }).collect(Collectors.toList());
+
+        // Map outputs
+        List<Output> outputs = oldChild.getOutputList().stream()
+                .map(outputDTO -> {
+                    Output output = new Output();
+                    output.setType(outputDTO.getType());
+                    output.setCableType(outputDTO.getCableType());
+                    output.setControlTerminalsln(outputDTO.getControlTerminalsln());
+                    output.setControlTerminalsCm(outputDTO.getControlTerminalsCm());
+                    output.setControllerPointDescription(outputDTO.getControllerPointDescription());
+                    output.setDdcFieldDevice(outputDTO.getDdcFieldDevice());
+                    output.setFieldDeviceInputOutputType(outputDTO.getFieldDeviceInputOutputType());
+                    output.setSpecialNotesComments(outputDTO.getSpecialNotesComments());
+                    output.setController(newChild);
+                    return output;
+                }).collect(Collectors.toList());
+
+        newChild.setInputList(inputs);
+        newChild.setOutputList(outputs);
+
+
+        return newChild;
     }
 }

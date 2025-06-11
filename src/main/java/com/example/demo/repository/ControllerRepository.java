@@ -13,4 +13,5 @@ import java.util.Optional;
 @Repository
 public interface ControllerRepository extends JpaRepository<Controller, Long> {
     List<Controller> findByProjectId(Long projectId);
+    List<Controller> findByUseAsTemplateTrue();
 }

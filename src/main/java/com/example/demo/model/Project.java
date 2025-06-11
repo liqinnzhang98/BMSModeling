@@ -22,7 +22,9 @@ public class Project {
     private Date date;
     @Column(name = "job_number")
     private String jobNumber;
-    @OneToMany(mappedBy = "project")
+    @Column(name = "date_created")
+    private Date dateCreated;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Controller> controllerList;
     @ManyToOne
     private User user;
@@ -81,5 +83,13 @@ public class Project {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }

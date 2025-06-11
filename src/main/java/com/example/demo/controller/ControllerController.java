@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -58,20 +59,76 @@ public class ControllerController {
 
             // Fetch the Project entity
             Optional<Project> projectOptional = projectRepository.findById(projectId);
-            if (!projectOptional.isPresent()) {
+            if (projectOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404, "Project not found", null));
             }
-
             Project project = projectOptional.get();
-
             // Map the DTO to the entity
             Controller controller = ControllerMapperUtil.toEntity(requestDTO, user, project);
 
-            // Save the controller to the database
+            System.out.println(requestDTO.getChildControllers());
+
+            // update the parent controller in child entity
+            if (requestDTO.getParentControllerId() != null) {
+                Optional<Controller> parentControllerOptional = controllerService.getControllerById(requestDTO.getParentControllerId());
+                // update parent controllers
+                parentControllerOptional.ifPresent(controller::setParentController);
+            }
+
+            // Save the new added controller to the database
             Controller savedController = controllerService.saveController(controller);
+
+            // update childLst from the parent controllers
+            System.out.println(savedController.getParentController());
+            if (savedController.getParentController() != null) {
+                List<Long> updatedChildLst;
+                Controller updatingParentController = savedController.getParentController();
+                if (updatingParentController.getChildControllers() != null) {
+                    updatedChildLst = updatingParentController.getChildControllers();
+                    updatedChildLst.add(savedController.getId());
+                } else {
+                    updatedChildLst = new ArrayList<>();
+                    updatedChildLst.add(savedController.getId());
+                }
+                controllerService.saveController(updatingParentController);
+            }
+
+            //update inputOrder if the inputList is not empty
+            if (controller.getInputList() != null && !controller.getInputList().isEmpty()) {
+                List<Long> inputIds = controller.getInputList().stream()
+                        .map(Input::getId)
+                        .collect(Collectors.toList());
+                controllerService.updateOrderList(savedController.getId(), inputIds, true);
+            }
+
+            //update outputOrder if the outputList is not empty
+
+            if (controller.getOutputList() != null && !controller.getOutputList().isEmpty()) {
+                List<Long> outputIds = controller.getOutputList().stream()
+                        .map(Output::getId)
+                        .collect(Collectors.toList());
+                controllerService.updateOrderList(savedController.getId(), outputIds, false);
+            }
+
+            // if the saved controller is a parent Controller, create the child controllers and link them together
+            if (!savedController.getChildControllers().isEmpty()) {
+                System.out.println("1");
+                for (long childControllerId : savedController.getChildControllers()) { // for each child in parent
+                    System.out.println("2");
+                    Optional<Controller> childControllerOptional = controllerService.getControllerById(childControllerId);
+                    if (childControllerOptional.isPresent()) { // if the child exists, make a copy and store
+                        System.out.println("3");
+                        Controller newChildController = ControllerMapperUtil.childtoNewChild(childControllerOptional.get(), savedController, project);
+                        System.out.println("4");
+                        controllerService.saveController(newChildController);
+                    }
+                }
+            }
 
             // Return success response
             ControllerResponseDTO responseDTO = ControllerMapperUtil.toDTO(savedController);
+
+
             return ResponseEntity.status(201).body(new ApiResponse<>(201,
                     "Controller created successfully",
                     responseDTO));
@@ -103,7 +160,7 @@ public class ControllerController {
 
             // Fetch the Controller entity
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(
                         404,
                         "Controller updated successfully",
@@ -125,13 +182,16 @@ public class ControllerController {
                 controller.setConfiguration(controllerUpdateDTO.getConfiguration());
             }
 
+            // save and send response back
             Controller updatedController = controllerService.saveController(controller);
+
+            ControllerResponseDTO responseDTO = ControllerMapperUtil.toDTO(updatedController);
 
 
             return ResponseEntity.ok(new ApiResponse<>(
                     200,
-                    "Controller deleted successfully",
-                    null));
+                    "Controller updated successfully",
+                    responseDTO));
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new ApiResponse<>(500,
@@ -154,7 +214,7 @@ public class ControllerController {
 
             // Fetch the Project entity
             Optional<Project> projectOptional = projectRepository.findById(projectId);
-            if (!projectOptional.isPresent()) {
+            if (projectOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Project not found",
                         null));
@@ -164,12 +224,21 @@ public class ControllerController {
 
             // Fetch the Controller entity
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found",
                         null));
             }
-
+            // update parent child relationship
+            if (controllerService.getControllerById(controllerId).isPresent() && controllerService.getControllerById(controllerId).get().getParentController() != null) {
+                Controller deletingController = controllerService.getControllerById(controllerId).get();
+                Controller parentController = deletingController.getParentController();
+                if (!parentController.getChildControllers().isEmpty()) {
+                    // update child controllers
+                    parentController.getChildControllers().remove(deletingController.getId());
+                }
+                controllerService.saveController(parentController);
+            }
             // Delete the controller
             controllerService.deleteController(controllerId);
 
@@ -188,9 +257,18 @@ public class ControllerController {
             summary = "returns are controllers involved with one single project"
     )
 
-    @GetMapping("/projectControllers/{projectId}/")
-    public ResponseEntity<?> getControllersByProject(@PathVariable Long projectId) {
+    @GetMapping("/projectControllers/{projectId}")
+    public ResponseEntity<?> getControllersByProject(@RequestHeader("Authorization") String token,
+                                                     @PathVariable Long projectId) {
         try {
+
+            // Extract email from the token
+            String email = extractEmailFromToken(token);
+
+            // Check if the user exists
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
             // Check if the project exists
             Project project = projectService.getProjectById(projectId)
                     .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -216,11 +294,12 @@ public class ControllerController {
             summary = "Creates a new input and associates it with a controller"
     )
     @PostMapping("/createInput/{controllerId}")
-    public ResponseEntity<?> createInput(@PathVariable Long controllerId,
+    public ResponseEntity<?> createInput(
+            @RequestHeader("Authorization") String token, @PathVariable Long controllerId,
                                          @RequestBody InputDTO inputDTO) {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found",
                         null));
@@ -230,7 +309,10 @@ public class ControllerController {
             inputToCreate.setController(controllerOptional.get());
 
             Input createdInput = inputService.saveInput(inputToCreate);
+
             InputDTO createdDTO = InputMapperUtil.toDTO(createdInput);
+
+            controllerService.appendToOrderList(controllerId, createdDTO.getId(), true);
 
             return ResponseEntity.ok(new ApiResponse<>(201, "Input created successfully", createdDTO));
         } catch (Exception e) {
@@ -244,20 +326,24 @@ public class ControllerController {
             summary = "Creates a new output and associates it with a controller"
     )
     @PostMapping("/createOutput/{controllerId}")
-    public ResponseEntity<?> createOutput(@PathVariable Long controllerId,
+    public ResponseEntity<?> createOutput(@RequestHeader("Authorization") String token, @PathVariable Long controllerId,
                                           @RequestBody OutputDTO outputDTO) {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found",
                         null));
             }
 
+            System.out.println(outputDTO.getSpecialNotesComments());
+
             Output outputToCreate = OutputMapperUtil.toEntity(outputDTO);
             outputToCreate.setController(controllerOptional.get());
 
             Output createdOutput = outputService.saveOutput(outputToCreate);
+            controllerService.appendToOrderList(controllerId, createdOutput.getId(), false);
+
             OutputDTO createdDTO = OutputMapperUtil.toDTO(createdOutput);
 
             return ResponseEntity.ok(new ApiResponse<>(201, "Output created successfully", createdDTO));
@@ -274,10 +360,10 @@ public class ControllerController {
             description = "Returns controller details along with input and output lists by controller ID"
     )
     @GetMapping("/{controllerId}")
-    public ResponseEntity<?> getControllerById(@PathVariable Long controllerId) {
+    public ResponseEntity<?> getControllerById(@RequestHeader("Authorization") String token, @PathVariable Long controllerId) {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found",
                         null));
@@ -299,17 +385,17 @@ public class ControllerController {
             summary = "Deletes an input from a controller, controller ID and input ID are required"
     )
     @DeleteMapping("/deleteInput/{controllerId}/{inputId}")
-    public ResponseEntity<?> deleteInput(@PathVariable Long controllerId, @PathVariable Long inputId) {
+    public ResponseEntity<?> deleteInput(@RequestHeader("Authorization") String token, @PathVariable Long controllerId, @PathVariable Long inputId) {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found",
                         null));
             }
 
             Optional<Input> inputOptional = inputService.getInputById(inputId);
-            if (!inputOptional.isPresent()) {
+            if (inputOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Input not found",
                         null));
@@ -317,6 +403,7 @@ public class ControllerController {
 
             // Remove the input from the controller
             inputService.deleteInput(inputId);
+            controllerService.deleteFromOrderList(controllerId, inputId,true);
 
             return ResponseEntity.ok(new ApiResponse<>(200,
                     "Input deleted successfully",
@@ -333,23 +420,24 @@ public class ControllerController {
             summary = "Deletes an output from a controller, controller ID and output ID are required"
     )
     @DeleteMapping("/deleteOutput/{controllerId}/{outputId}")
-    public ResponseEntity<?> deleteOutput(@PathVariable Long controllerId, @PathVariable Long outputId) {
+    public ResponseEntity<?> deleteOutput(@RequestHeader("Authorization") String token, @PathVariable Long controllerId, @PathVariable Long outputId) {
         try {
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found",
                         null));
             }
 
             Optional<Output> outputOptional = outputService.getOutputById(outputId);
-            if (!outputOptional.isPresent()) {
+            if (outputOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Output not found", null));
             }
 
             // Remove the output from the controller
             outputService.deleteOutput(outputId);
+            controllerService.deleteFromOrderList(controllerId, outputId, false);
 
             return ResponseEntity.ok(new ApiResponse<>(200, "Output deleted successfully", null));
         } catch (Exception e) {
@@ -363,20 +451,20 @@ public class ControllerController {
             summary = "Updates an input in a controller"
     )
     @PutMapping("/updateInput/{controllerId}/{inputId}")
-    public ResponseEntity<?> updateInput(@PathVariable Long controllerId,
+    public ResponseEntity<?> updateInput(@RequestHeader("Authorization") String token, @PathVariable Long controllerId,
                                          @PathVariable Long inputId,
                                          @RequestBody InputDTO inputDTO) {
         try {
             // Check if the controller exists
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found", null));
             }
 
             // Check if the input exists
             Optional<Input> inputOptional = inputService.getInputById(inputId);
-            if (!inputOptional.isPresent()) {
+            if (inputOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Input not found", null));
             }
@@ -406,20 +494,20 @@ public class ControllerController {
             summary = "Updates an output in a controller"
     )
     @PutMapping("/updateOutput/{controllerId}/{outputId}")
-    public ResponseEntity<?> updateOutput(@PathVariable Long controllerId,
+    public ResponseEntity<?> updateOutput(@RequestHeader("Authorization") String token, @PathVariable Long controllerId,
                                           @PathVariable Long outputId,
                                           @RequestBody OutputDTO outputDTO) {
         try {
             // Check if the controller exists
             Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
-            if (!controllerOptional.isPresent()) {
+            if (controllerOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Controller not found", null));
             }
 
             // Check if the input exists
             Optional<Output> outputOptional = outputService.getOutputById(outputId);
-            if (!outputOptional.isPresent()) {
+            if (outputOptional.isEmpty()) {
                 return ResponseEntity.status(404).body(new ApiResponse<>(404,
                         "Output not found", null));
             }
@@ -440,6 +528,77 @@ public class ControllerController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new ApiResponse<>(500,
                     "An error occurred: " + e.getMessage(), null));
+        }
+    }
+
+    @PutMapping("/rearrangeOrder/{controllerId}/inputs")
+    public ResponseEntity<?> rearrangeInputOrder(@RequestHeader("Authorization") String token, @PathVariable Long controllerId, @RequestBody ReorderListDTO newInputOrder) {
+
+        try {
+
+            // Check if the controller exists
+            Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
+            if (controllerOptional.isEmpty()) {
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found", null));
+            }
+
+        Controller reorderedController = controllerService.updateOrderList(controllerId, newInputOrder.getIds(), true);
+        ControllerResponseDTO updatedController  = ControllerMapperUtil.toDTO(reorderedController);
+        return ResponseEntity.ok(new ApiResponse<>(200,
+                "Input updated successfully", updatedController));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(), null));
+        }
+    }
+
+    @PutMapping("/rearrangeOrder/{controllerId}/outputs")
+    public ResponseEntity<?> rearrangeOutputOrder(@PathVariable Long controllerId, @RequestBody ReorderListDTO newOutputOrder) {
+        try {
+
+            // Check if the controller exists
+            Optional<Controller> controllerOptional = controllerService.getControllerById(controllerId);
+            if (controllerOptional.isEmpty()) {
+                return ResponseEntity.status(404).body(new ApiResponse<>(404,
+                        "Controller not found", null));
+            }
+
+            Controller reorderedController = controllerService.updateOrderList(controllerId, newOutputOrder.getIds(), false);
+            ControllerResponseDTO updatedController  = ControllerMapperUtil.toDTO(reorderedController);
+            return ResponseEntity.ok(new ApiResponse<>(200,
+                    "Output updated successfully", updatedController));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(500,
+                    "An error occurred: " + e.getMessage(), null));
+        }
+    }
+
+    @PutMapping("/useAsTemplate/{id}")
+    public ResponseEntity<?> markAsTemplate(
+            @PathVariable Long id,
+            @RequestBody UseAsTemplateRequestDTO request
+    ) {
+        try {
+            controllerService.updateUseAsTemplateFlag(id, request.isUseAsTemplate(), request.getTemplateName());
+            return ResponseEntity.ok("Template flag updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error updating template flag: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/templates")
+    public ResponseEntity<?> getAllTemplateControllers() {
+        try {
+            List<Controller> templates = controllerService.getAllTemplates();
+            List<ControllerResponseDTO> dtoList = templates.stream()
+                    .map(ControllerMapperUtil::toDTO)
+                    .toList();
+            return ResponseEntity.ok(new ApiResponse<>(200, "Template controllers fetched", dtoList));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new ApiResponse<>(500, "Error fetching templates: " + e.getMessage(), null));
         }
     }
 }

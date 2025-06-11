@@ -17,6 +17,7 @@ public class IOComponent {
     private String controllerPointDescription;
     private String ddcFieldDevice;
     private String fieldDeviceInputOutputType;
+    private String specialNotesComments;
 
     public Long getId() {
         return id;
@@ -71,10 +72,8 @@ public class IOComponent {
     }
 
     public void setSpecialNotesComments(String specialNotesComments) {
-
+        this.specialNotesComments = specialNotesComments;
     }
-
-    private String specialNotesComments;
 
     public void setController(Controller controller) {
     }

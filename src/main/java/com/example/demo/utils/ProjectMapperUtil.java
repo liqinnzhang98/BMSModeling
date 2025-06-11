@@ -21,6 +21,7 @@ public class ProjectMapperUtil {
         dto.setRevision(project.getRevision());
         dto.setDate(project.getDate());
         dto.setJobNumber(project.getJobNumber());
+        dto.setDateCreated(project.getDateCreated());
         return dto;
     }
 
@@ -29,5 +30,6 @@ public class ProjectMapperUtil {
         project.setRevision(dto.getRevision());
         project.setDate(dto.getDate());
         project.setJobNumber(dto.getJobNumber());
+        project.setDateCreated(dto.getDateCreated());
     }
 }

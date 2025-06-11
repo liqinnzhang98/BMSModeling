@@ -1,0 +1,167 @@
+.container {
+  min-height: calc(100vh - 64px);
+  padding-top: 2rem;
+}
+
+.headerContainer {
+  background-color: invisible;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.editForm {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.backButton {
+  margin-bottom: 1rem;
+  text-transform: none;
+}
+
+.topButtonRow {
+  display: flex;
+  gap: 1rem;
+
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.controllerContainer {
+  background-color: #f8f9fa;
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.card {
+  width: 100%;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+  position: relative;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cardContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.controllerInfo {
+  flex: 1;
+}
+
+.controllerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+} 
+
+.viewDetailsButton {
+  margin-right: 0.5rem;
+  text-transform: none;
+  font-size: 0.875rem;
+  padding: 4px 8px;
+}
+
+.deleteButton {
+  color: #c52525 !important;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+
+.deleteButton svg {
+  color: #c52525 !important;
+}
+
+/* Mobile styles */
+@media screen and (max-width: 600px) {
+  .card {
+    padding: 0.5rem;
+  }
+
+  .cardContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .controllerInfo {
+    width: 100%;
+  }
+
+  .controllerActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .deleteButton {
+    padding: 4px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .buttonGroup button {
+    width: 100%;
+  }
+
+  .headerContainer {
+    padding: 1rem;
+  }
+
+  .titleContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .editForm {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .editForm .MuiTextField-root {
+    width: 100%;
+  }
+
+  .topButtonRow {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .topButtonRow button {
+    width: 100%;
+  }
+} 
+
