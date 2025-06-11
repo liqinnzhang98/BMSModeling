@@ -10,6 +10,14 @@ A comprehensive Building Management System (BMS) modeling platform that allows u
 - Real-time simulation capabilities
 - Interactive UI for system modeling
 
+## Screenshots
+
+### Controller Management
+![Controller Management](controllerManagement.png)
+
+### Drag and Drop Interface
+![Drag and Drop Feature](dndFeature.png)
+
 ## Prerequisites
 
 - Java JDK 17
